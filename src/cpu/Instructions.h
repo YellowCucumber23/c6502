@@ -106,7 +106,4 @@ uint8_t TXA(void);
 uint8_t TXS(void);
 uint8_t TYA(void);
 
-
-
-
 #endif
