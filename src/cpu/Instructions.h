@@ -17,7 +17,7 @@
  * Definitions
  *************************************************************************************************/
 /* Macro to populate an instruction struct */
-#define DEFINE_INSTRUCTION(NAME, OP_FUNC, MODE_FUNC, CYCLES) \
+#define DEF_INSTR(NAME, OP_FUNC, MODE_FUNC, CYCLES) \
     (instruction_t){ .opname = NAME, .op = OP_FUNC, .mode = MODE_FUNC, .clock_cycle = CYCLES }
 
 /* Bit shift values for the resepective flags */
@@ -41,6 +41,71 @@ typedef struct instruction_t {
 } instruction_t;
 
 extern instruction_t instruction_map[16][16];
+
+/**************************************************************************************************
+ * Addressing Mode Function Prototypes
+ *************************************************************************************************/
+// https://wiki.cdot.senecapolytechnic.ca/wiki/6502_Addressing_Modes#X.2C_Indirect 
+/**
+ * @brief Set cpu mode to implicit
+ */
+void IMP(void);
+
+/**
+ * @brief Set cpu mode to immediate
+ */
+void IMM(void);
+
+/**
+ * @brief Set cpu mode to zero page
+ */
+void ZPG(void);
+
+/**
+ * @brief Set cpu mode to zero page, x
+ */
+void ZPX(void);
+
+/**
+ * @brief Set cpu mode to zero page, y
+ */
+void ZPY(void);
+
+/**
+ * @brief Set cpu mode to relative
+ */
+void REL(void);
+
+/**
+ * @brief Set cpu mode to absolute
+ */
+void ABS(void);
+
+/**
+ * @brief Set cpu mode to absolute, x
+ */
+void ABX(void);
+
+/**
+ * @brief Set cpu mode to implicit, y
+ */
+void ABY(void);
+
+/**
+ * @brief Set cpu mode to indirect
+ */
+void IND(void);
+
+/**
+ * @brief Set cpu mode to indirect, x
+ */
+void IZX(void);
+
+/**
+ * @brief Set cpu mode to indirect, y
+ */
+void IZY(void);
+
 /**************************************************************************************************
  * OPCode Function Prototypes
  *************************************************************************************************/

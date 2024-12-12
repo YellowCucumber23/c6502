@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
             exit(1);
     }
 
+    cpu_init();
     mem_t *mem = mem_get_ptr();
 
     for(int i = 0; i < 256; ++i)

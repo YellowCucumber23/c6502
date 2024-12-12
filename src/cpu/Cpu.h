@@ -28,11 +28,17 @@ typedef struct cpu {
     uint8_t reg_a;      /* Accumulator register */
     uint8_t reg_x;      /* Index regiter x */
     uint8_t reg_y;      /* Index register y */
+    uint8_t status;     /* Status register for the flags */
 } cpu_t;
 
 /**************************************************************************************************
  * Function Prototypes
  *************************************************************************************************/
+
+/**
+ * @brief Initialize the memory pointer and registers
+ */
+void cpu_init(void);
 
 /**
  * @brief Read from an address in memory
