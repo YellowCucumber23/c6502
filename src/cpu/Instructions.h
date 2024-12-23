@@ -36,11 +36,27 @@
 typedef struct instruction_t {
     char* opname;               /* Operation name */
     uint8_t (*op)(void);        /* Pointer to operation function */
-    uint8_t (*mode)(void);      /* Pointer to addressing mode function */
+    void (*mode)(void);         /* Pointer to addressing mode function */
     uint8_t clock_cycle;        /* Number of clock cycles */
 } instruction_t;
 
 extern instruction_t instruction_map[16][16];
+
+/**************************************************************************************************
+ * Helper Function Prototypes
+ *************************************************************************************************/
+
+/**
+ * @brief Initialize the memoery and cpu pointers for the instructions
+ */
+void instruction_init(void);
+
+/**
+ * @brief Execute the fetched instruction from the cpu
+ * @param[in] fetched The instruction fetched
+ * @param[in] cycles The current number of clock cycles
+ */
+void instruction_exec(uint8_t fetched, uint32_t* cycles);
 
 /**************************************************************************************************
  * Addressing Mode Function Prototypes

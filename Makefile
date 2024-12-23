@@ -3,7 +3,7 @@ CFLAGS = -Isrc/Cpu -Isrc/Mem -Wall -Wextra -g
 LDFLAGS =
 
 # List of source files
-sources = src/main.c src/Cpu/Cpu.c src/Mem/Memory.c
+sources = src/main.c src/Cpu/Instructions.c src/Cpu/Cpu.c src/Mem/Memory.c
 # Create object files list in bin directory
 objects = $(sources:src/%.c=bin/%.o)
 

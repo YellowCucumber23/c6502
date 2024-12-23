@@ -1,5 +1,6 @@
 #include "Memory.h"
 #include "Instructions.h"
+#include "Cpu.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -9,11 +10,16 @@
 /**************************************************************************************************
  * Global Variables
  *************************************************************************************************/
-mem_t mem;
+mem_t* p_mem;
+cpu_t* p_cpu;
+uint16_t abs_addr;
+uint16_t rel_addr;
+uint8_t fetched_instr;
+uint32_t instr_cycles;
 
 instruction_t instruction_map[16][16] = 
 {   /*0X00 - 0X0F*/
-    {DEF_INSTR("BRK", &BRK, &IMM, 7), DEF_INSTR("ORA", &ORA, &INX, 6),
+    {DEF_INSTR("BRK", &BRK, &IMM, 7), DEF_INSTR("ORA", &ORA, &IND, 6),
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("NUL", &NUL, &IMM, 0),
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("ORA", &ORA, &ZPG, 3),
      DEF_INSTR("ASL", &ASL, &ZPG, 5), DEF_INSTR("NUL", &NUL, &IMM, 0),
@@ -67,7 +73,7 @@ instruction_t instruction_map[16][16] =
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("EOR", &EOR, &ABX, 4),
      DEF_INSTR("LSR", &LSR, &ABX, 7), DEF_INSTR("NUL", &NUL, &IMM, 0),},
     /*0X60 - 0X6F*/
-    {DEF_INSTR("RTS", &RTS, &IMP, 6), DEF_INSTR("ADC", &ADC, &INX, 6),
+    {DEF_INSTR("RTS", &RTS, &IMP, 6), DEF_INSTR("ADC", &ADC, &IND, 6),
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("NUL", &NUL, &IMM, 0),
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("ADC", &ADC, &ZPG, 3),
      DEF_INSTR("ROR", &ROR, &ZPG, 5), DEF_INSTR("NUL", &NUL, &IMM, 0),
@@ -158,5 +164,186 @@ instruction_t instruction_map[16][16] =
      DEF_INSTR("INC", &INC, &ABX, 7), DEF_INSTR("NUL", &NUL, &IMM, 0),}
 };
 /**************************************************************************************************
- * Function Definitions
+ * Helper Function Definitions
  *************************************************************************************************/
+
+void instruction_init(void)
+{
+    p_mem = mem_get_ptr();
+    p_cpu = cpu_get_ptr();
+}
+
+void instruction_exec(uint8_t fetched, uint32_t* cycles)
+{
+    instruction_t instr = instruction_map[(fetched & 0xF0) >> 4][fetched & 0x0F];
+    instr_cycles = *cycles;
+    printf("%s\n",instr.opname);
+
+}
+
+/**************************************************************************************************
+ * Address Modes Definitions
+ *************************************************************************************************/
+/**
+ * @brief Set cpu mode to implicit
+ */
+void IMP(void)
+{
+    fetched_instr = p_cpu->reg_a;
+}
+
+/**
+ * Data is taken from the byte following the opcode
+ */
+void IMM(void)
+{
+    abs_addr = p_cpu->pc++;
+}
+
+/**
+ * An 8-bit address is provided within the zero page. This is like an absolute address, 
+ * but since the argument is only one byte, the CPU does not have to spend an additional 
+ * cycle to fetch high byte.
+ */
+void ZPG(void)
+{
+    
+}
+
+/**
+ * @brief Set cpu mode to zero page, x
+ */
+void ZPX(void)
+{
+
+}
+
+/**
+ * @brief Set cpu mode to zero page, y
+ */
+void ZPY(void)
+{
+
+}
+
+/**
+ * @brief Set cpu mode to relative
+ */
+void REL(void)
+{
+
+}
+
+/**
+ * @brief Set cpu mode to absolute
+ */
+void ABS(void)
+{
+
+}
+
+/**
+ * @brief Set cpu mode to absolute, x
+ */
+void ABX(void)
+{
+
+}
+
+/**
+ * @brief Set cpu mode to implicit, y
+ */
+void ABY(void)
+{
+
+}
+
+/**
+ * @brief Set cpu mode to indirect
+ */
+void IND(void)
+{
+
+}
+
+/**
+ * @brief Set cpu mode to indirect, x
+ */
+void IZX(void)
+{
+
+}
+
+/**
+ * @brief Set cpu mode to indirect, y
+ */
+void IZY(void)
+{
+
+}
+
+
+/**************************************************************************************************
+ * OPCode Definitions
+ *************************************************************************************************/
+
+uint8_t NUL(void){return 0;}
+uint8_t ADC(void){return 0;}
+uint8_t AND(void){return 0;}
+uint8_t ASL(void){return 0;}
+uint8_t BCC(void){return 0;}
+uint8_t BCS(void){return 0;}
+uint8_t BEQ(void){return 0;}
+uint8_t BIT(void){return 0;}
+uint8_t BMI(void){return 0;}
+uint8_t BNE(void){return 0;}
+uint8_t BPL(void){return 0;}
+uint8_t BRK(void){return 0;}
+uint8_t BVC(void){return 0;}
+uint8_t BVS(void){return 0;}
+uint8_t CLC(void){return 0;}
+
+uint8_t CLD(void){return 0;}
+uint8_t CLI(void){return 0;}
+uint8_t CLV(void){return 0;}
+uint8_t CMP(void){return 0;}
+uint8_t CPX(void){return 0;}
+uint8_t CPY(void){return 0;}
+uint8_t DEC(void){return 0;}
+uint8_t DEX(void){return 0;}
+uint8_t DEY(void){return 0;}
+uint8_t EOR(void){return 0;}
+uint8_t INC(void){return 0;}
+uint8_t INX(void){return 0;}
+uint8_t INY(void){return 0;}
+uint8_t JMP(void){return 0;}
+
+uint8_t JSR(void){return 0;}
+uint8_t LDA(void){return 0;}
+uint8_t LDX(void){return 0;}
+uint8_t LDY(void){return 0;}
+uint8_t LSR(void){return 0;}
+uint8_t NOP(void){return 0;}
+uint8_t ORA(void){return 0;}
+uint8_t PHA(void){return 0;}
+uint8_t PHP(void){return 0;}
+uint8_t PLA(void){return 0;}
+uint8_t PLP(void){return 0;}
+uint8_t ROL(void){return 0;}
+uint8_t ROR(void){return 0;}
+uint8_t RTI(void){return 0;}
+
+uint8_t RTS(void){return 0;}
+uint8_t SBC(void){return 0;}
+uint8_t SEC(void){return 0;}
+uint8_t SED(void){return 0;}
+uint8_t SEI(void){return 0;}
+uint8_t STA(void){return 0;}
+uint8_t STX(void){return 0;}
+uint8_t STY(void){return 0;}
+uint8_t TAX(void){return 0;}
+uint8_t TAY(void){return 0;}
+uint8_t TSX(void){return 0;}
+uint8_t TXA(void){return 0;}
+uint8_t TXS(void){return 0;}
+uint8_t TYA(void){return 0;}
