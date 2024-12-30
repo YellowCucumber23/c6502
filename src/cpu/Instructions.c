@@ -176,8 +176,13 @@ void instruction_init(void)
 void instruction_exec(uint8_t fetched, uint32_t* cycles)
 {
     instruction_t instr = instruction_map[(fetched & 0xF0) >> 4][fetched & 0x0F];
-    instr_cycles = *cycles;
-    printf("%s\n",instr.opname);
+    *cycles = instr.clock_cycle;
+
+    /* Change the mode */
+    (*instr.mode)();
+    
+    /* Execute the isntruction */
+    uint8_t additional_cycle = (*instr.op)();
 
 }
 
@@ -197,7 +202,9 @@ void IMP(void)
  */
 void IMM(void)
 {
+    cpu_print();
     abs_addr = p_cpu->pc++;
+    cpu_print();
 }
 
 /**
@@ -298,7 +305,11 @@ uint8_t BIT(void){return 0;}
 uint8_t BMI(void){return 0;}
 uint8_t BNE(void){return 0;}
 uint8_t BPL(void){return 0;}
-uint8_t BRK(void){return 0;}
+uint8_t BRK(void)
+{
+    printf("BREAK\n");
+    return 0;
+}
 uint8_t BVC(void){return 0;}
 uint8_t BVS(void){return 0;}
 uint8_t CLC(void){return 0;}

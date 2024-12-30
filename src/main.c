@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
     }
 
     cpu_init();
-    cpu_print();
+    // cpu_print();
 
     uint32_t cycles = 0;
     instruction_exec(0x00, &cycles);
