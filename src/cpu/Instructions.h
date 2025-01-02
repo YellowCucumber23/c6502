@@ -64,63 +64,75 @@ void instruction_exec(uint8_t fetched, uint32_t* cycles);
 // https://wiki.cdot.senecapolytechnic.ca/wiki/6502_Addressing_Modes#X.2C_Indirect 
 /**
  * @brief Set cpu mode to implicit
+ * @return the number of additional clock cycles
  */
-void IMP(void);
+uint8_t IMP(void);
 
 /**
  * @brief Set cpu mode to immediate
+ * @return the number of additional clock cycles
  */
-void IMM(void);
+uint8_t IMM(void);
 
 /**
  * @brief Set cpu mode to zero page
+ * @return the number of additional clock cycles
  */
-void ZPG(void);
+uint8_t ZPG(void);
 
 /**
  * @brief Set cpu mode to zero page, x
+ * @return the number of additional clock cycles
  */
-void ZPX(void);
+uint8_t ZPX(void);
 
 /**
  * @brief Set cpu mode to zero page, y
+ * @return the number of additional clock cycles
  */
-void ZPY(void);
+uint8_t ZPY(void);
 
 /**
  * @brief Set cpu mode to relative
+ * @return the number of additional clock cycles
  */
-void REL(void);
+uint8_t REL(void);
 
 /**
  * @brief Set cpu mode to absolute
+ * @return the number of additional clock cycles
  */
-void ABS(void);
+uint8_t ABS(void);
 
 /**
  * @brief Set cpu mode to absolute, x
+ * @return the number of additional clock cycles
  */
-void ABX(void);
+uint8_t ABX(void);
 
 /**
  * @brief Set cpu mode to implicit, y
+ * @return the number of additional clock cycles
  */
-void ABY(void);
+uint8_t ABY(void);
 
 /**
  * @brief Set cpu mode to indirect
+ * @return the number of additional clock cycles
  */
-void IND(void);
+uint8_t IND(void);
 
 /**
  * @brief Set cpu mode to indirect, x
+ * @return the number of additional clock cycles
  */
-void IZX(void);
+uint8_t IZX(void);
 
 /**
  * @brief Set cpu mode to indirect, y
+ * @return the number of additional clock cycles
  */
-void IZY(void);
+uint8_t IZY(void);
 
 /**************************************************************************************************
  * OPCode Function Prototypes

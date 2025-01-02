@@ -12,14 +12,15 @@
  *************************************************************************************************/
 mem_t* p_mem;
 cpu_t* p_cpu;
-uint16_t abs_addr;
+
+uint16_t cur_addr;
 uint16_t rel_addr;
 uint8_t fetched_instr;
 uint32_t instr_cycles;
 
 instruction_t instruction_map[16][16] = 
 {   /*0X00 - 0X0F*/
-    {DEF_INSTR("BRK", &BRK, &IMM, 7), DEF_INSTR("ORA", &ORA, &IND, 6),
+    {DEF_INSTR("BRK", &BRK, &IMM, 7), DEF_INSTR("ORA", &ORA, &INX, 6),
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("NUL", &NUL, &IMM, 0),
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("ORA", &ORA, &ZPG, 3),
      DEF_INSTR("ASL", &ASL, &ZPG, 5), DEF_INSTR("NUL", &NUL, &IMM, 0),
@@ -73,7 +74,7 @@ instruction_t instruction_map[16][16] =
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("EOR", &EOR, &ABX, 4),
      DEF_INSTR("LSR", &LSR, &ABX, 7), DEF_INSTR("NUL", &NUL, &IMM, 0),},
     /*0X60 - 0X6F*/
-    {DEF_INSTR("RTS", &RTS, &IMP, 6), DEF_INSTR("ADC", &ADC, &IND, 6),
+    {DEF_INSTR("RTS", &RTS, &IMP, 6), DEF_INSTR("ADC", &ADC, &INX, 6),
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("NUL", &NUL, &IMM, 0),
      DEF_INSTR("NUL", &NUL, &IMM, 0), DEF_INSTR("ADC", &ADC, &ZPG, 3),
      DEF_INSTR("ROR", &ROR, &ZPG, 5), DEF_INSTR("NUL", &NUL, &IMM, 0),
@@ -189,22 +190,23 @@ void instruction_exec(uint8_t fetched, uint32_t* cycles)
 /**************************************************************************************************
  * Address Modes Definitions
  *************************************************************************************************/
+
 /**
- * @brief Set cpu mode to implicit
+ * Set cpu mode to implicit
  */
-void IMP(void)
+uint8_t IMP(void)
 {
     fetched_instr = p_cpu->reg_a;
+    return 0;
 }
 
 /**
  * Data is taken from the byte following the opcode
  */
-void IMM(void)
+uint8_t IMM(void)
 {
-    cpu_print();
-    abs_addr = p_cpu->pc++;
-    cpu_print();
+    cur_addr = p_cpu->pc++;
+    return 0;
 }
 
 /**
@@ -212,80 +214,131 @@ void IMM(void)
  * but since the argument is only one byte, the CPU does not have to spend an additional 
  * cycle to fetch high byte.
  */
-void ZPG(void)
+uint8_t ZPG(void)
 {
-    
+    cur_addr = cpu_fetch(p_cpu->pc) & 0xFF;
+    return 0;
 }
 
 /**
- * @brief Set cpu mode to zero page, x
+ * Same as regular page but add the reg_x value first
  */
-void ZPX(void)
+uint8_t ZPX(void)
 {
-
+    cur_addr = (cpu_fetch(p_cpu->pc) + p_cpu->reg_x) & 0xFF;
+    return 0;
 }
 
 /**
- * @brief Set cpu mode to zero page, y
+ * Same as regular page but add the reg_y value first
  */
-void ZPY(void)
+uint8_t ZPY(void)
 {
-
+    cur_addr = (cpu_fetch(p_cpu->pc) + p_cpu->reg_y) & 0xFF;
+    return 0;
 }
 
 /**
- * @brief Set cpu mode to relative
+ * Used by branch instructions which contain a
+ * signed 8 bit relative offset (-128 to +127) which is added to cpu.pc if the
+ * condition is true.
  */
-void REL(void)
+uint8_t REL(void)
 {
+    rel_addr = cpu_fetch(p_cpu->pc);
 
+    // Extend if value is negative
+    if (rel_addr & (1 << 7))
+    {
+        rel_addr |= 0xFF00; 
+    }
+    return 0;
 }
 
 /**
  * @brief Set cpu mode to absolute
  */
-void ABS(void)
+uint8_t ABS(void)
 {
-
+    uint16_t low = cpu_fetch(p_cpu->pc);
+    uint16_t high = cpu_fetch(p_cpu->pc);
+    cur_addr = (high << 8) | low;
+    
+    // Extra clock cycle if page overflow
+    if ((cur_addr & 0xFF00) != high){return 1;}
+    return 0;
 }
 
 /**
  * @brief Set cpu mode to absolute, x
  */
-void ABX(void)
+uint8_t ABX(void)
 {
+    uint16_t low = cpu_fetch(p_cpu->pc);
+    uint16_t high = cpu_fetch(p_cpu->pc);
+    cur_addr = ((high << 8) | low) + p_cpu->reg_x;
 
+    // Extra clock cycle if page overflow
+    if ((cur_addr & 0xFF00) != high){return 1;}
+    return 0;
 }
 
 /**
  * @brief Set cpu mode to implicit, y
  */
-void ABY(void)
+uint8_t ABY(void)
 {
+    uint16_t low = cpu_fetch(p_cpu->pc);
+    uint16_t high = cpu_fetch(p_cpu->pc);
+    cur_addr = ((high << 8) | low) + p_cpu->reg_y;
 
+    // Extra clock cycle if page overflow
+    if ((cur_addr & 0xFF00) != high){return 1;}
+    return 0;
 }
 
 /**
- * @brief Set cpu mode to indirect
+ * 6502 way of using pointers, only used in JMP
  */
-void IND(void)
+uint8_t IND(void)
 {
+    uint16_t low = cpu_fetch(p_cpu->pc);
+    uint16_t high = cpu_fetch(p_cpu->pc);
+    uint16_t ptr = (high << 8) | low;
 
+    cur_addr = (cpu_fetch(ptr + 1) << 8) | cpu_fetch(ptr);
+    return 0;
 }
 
 /**
  * @brief Set cpu mode to indirect, x
  */
-void IZX(void)
+uint8_t IZX(void)
 {
+    uint16_t addr = cpu_fetch(p_cpu->pc);
+    uint16_t low = cpu_fetch((uint16_t)(addr + (uint16_t)p_cpu->reg_x) & 0x00FF);
+    uint16_t high = cpu_fetch((uint16_t)(addr + (uint16_t)p_cpu->reg_x + 1) & 0x00FF);
 
+    cur_addr = (high << 8) | low;
+
+    return 0;
 }
 
 /**
  * @brief Set cpu mode to indirect, y
  */
-void IZY(void)
+uint8_t IZY(void)
 {
+    uint16_t addr = cpu_fetch(p_cpu->pc);
+
+    uint16_t low = cpu_fetch(addr & 0x00FF);
+    uint16_t high = cpu_fetch((addr + 1) & 0x00FF);
+
+    cur_addr = (high << 8) | low;
+    cur_addr += p_cpu->reg_y;
+
+    if ((cur_addr & 0xFF00) != high){return 1;}
+    return 0;
 
 }
 
@@ -294,6 +347,10 @@ void IZY(void)
  * OPCode Definitions
  *************************************************************************************************/
 
+/**
+ * @brief The operation used for empty entries in instruction lookup tarble
+ * @return uint8_t the number of clock cycles
+ */
 uint8_t NUL(void){return 0;}
 uint8_t ADC(void){return 0;}
 uint8_t AND(void){return 0;}
@@ -305,11 +362,7 @@ uint8_t BIT(void){return 0;}
 uint8_t BMI(void){return 0;}
 uint8_t BNE(void){return 0;}
 uint8_t BPL(void){return 0;}
-uint8_t BRK(void)
-{
-    printf("BREAK\n");
-    return 0;
-}
+uint8_t BRK(void){return 0;}
 uint8_t BVC(void){return 0;}
 uint8_t BVS(void){return 0;}
 uint8_t CLC(void){return 0;}

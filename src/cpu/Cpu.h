@@ -66,6 +66,13 @@ uint8_t cpu_read_mem(uint16_t addr);
 void cpu_write_mem(uint16_t addr, uint8_t val);
 
 /**
+ * @brief Wrapper function to fetch memory and increment program counter
+ * @param[in[]] addr The address to read from
+ * @return uint8_t The returned data
+ */
+uint8_t cpu_fetch(uint16_t addr);
+
+/**
  * @brief Print all the registers from the cpu struct
  */
 void cpu_print(void);

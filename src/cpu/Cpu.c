@@ -67,6 +67,13 @@ void cpu_write_mem(uint16_t addr, uint8_t val)
     else{ p_mem->irq_brk_vector[addr - 0xFFFE] = val; }
 }
 
+uint8_t cpu_fetch(uint16_t addr)
+{
+    uint8_t data = cpu_read_mem(addr);
+    if (addr == cpu.pc){cpu.pc++;}
+    return data;
+}
+
 void cpu_print(void)
 {
     printf("CPU State:\n");
